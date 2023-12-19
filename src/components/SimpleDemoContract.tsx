@@ -1,18 +1,7 @@
-import { Contract, lovelace, Party, IDeposit } from '@marlowe.io/language-core-v1';
-import { MY_NAMI, MY_LACE } from '../utils/constants.tsx';
+import { Contract, lovelace, Party, Value } from '@marlowe.io/language-core-v1';
 
-const alice: Party = MY_LACE;
-const bob: Party = MY_NAMI;
-
-// custom deposit defined by SC
-export const deposit: IDeposit = {
-    input_from_party: alice,
-    that_deposits: 50000000n,// n here converts this to a BigNumber
-    of_token: lovelace,
-    into_account: bob,
-};
-
-function mkSimpleDemo(){
+function mkSimpleDemo(amt: Value, alice: Party, bob: Party){
+    const bintAmount: bigint = amt as bigint;
     const simpleDemoContract: Contract = {
         when: [
             {
@@ -21,7 +10,7 @@ function mkSimpleDemo(){
                 party: alice,
                 of_token: lovelace,
                 into_account: bob,
-                deposits: 50000000n,
+                deposits: bintAmount,
               },
             },
           ],
