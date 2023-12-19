@@ -8,7 +8,7 @@ import IconButton from '@mui/material/IconButton';
 import Modal from '@mui/material/Modal';
 import Snackbar from '@mui/material/Snackbar';
 import CloseIcon from '@mui/icons-material/Close';
-import { constants, views } from '../utils/constants.js';
+import { constants, views } from '../utils/constants.tsx';
 
 const style = {
     position: 'absolute',
@@ -30,13 +30,31 @@ function ButtonAppBar({
     handleCloseModal,
     openSnack,
     handleSnackClose,
-    setView
+    setOpenSnack,
+    setView,
+    nami,
+    lace,
+    eternl
 }) {
 
-    const handleNami = () => {
+    const walletCommon = () => {
+        setOpenSnack(true);
         handleCloseModal();
-        handleWalletChoice(constants.NAMI);
         setView(views.CONTRACTS);
+    }
+    const handleNami = () => {
+        walletCommon();
+        handleWalletChoice(constants.NAMI);
+    }
+
+    const handleLace = () => {
+        walletCommon();
+        handleWalletChoice(constants.LACE);
+    }
+
+    const handleEternl = () => {
+        walletCommon();
+        handleWalletChoice(constants.ETERNL);
     }
 
     // Snackbar action
@@ -53,7 +71,6 @@ function ButtonAppBar({
         </React.Fragment>
     );
 
-    // TODO -- implement Eternl and Lace
     return(
         <Box sx={{ flexGrow: 1}}>
             <AppBar position="static">
@@ -62,7 +79,7 @@ function ButtonAppBar({
                         open={openSnack}
                         autoHideDuration={3000}
                         onClose={handleSnackClose}
-                        message={'Connected with Wallet! Replace wallet name here'}
+                        message={'Connected with ' + walletChoice + '!'}
                         action={action}
                     />
                     <IconButton 
@@ -92,13 +109,9 @@ function ButtonAppBar({
                                 <Typography id="modal-modal-title" variant="h6" component="h2">
                                     Connect your Wallet
                                 </Typography>
-                                <Button variant="contained" 
-                                    onClick={handleNami}
-                                >
-                                    Nami
-                                </Button>
-                                <Button variant="contained">Eternl</Button>
-                                <Button variant="contained">Lace</Button>
+                                <Button variant="contained" disabled={!nami} onClick={handleNami}>Nami</Button>
+                                <Button variant="contained" disabled={!eternl} onClick={handleEternl}>Eternl</Button>
+                                <Button variant="contained" disabled={!lace} onClick={handleLace}>Lace</Button>
                             </Box>
                     </Modal>
                 </Toolbar>
@@ -107,4 +120,4 @@ function ButtonAppBar({
     );
 }
 
-export default React.memo(ButtonAppBar);
+export default ButtonAppBar;
