@@ -1,0 +1,52 @@
+.App {
+    text-align: center;
+  }
+  
+  .App-logo {
+    height: 60vmin;
+    pointer-events: none;
+  }
+  
+  @media (prefers-reduced-motion: no-preference){
+    .App-logo{
+      animation: pulse infinite 3s linear;
+      align-items: center;
+    }
+  }
+  
+  .App-header {
+    background-color: #ffffff53;
+    min-height: 100vh;
+    display: center;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: calc(10px + 2vmin);
+    color: black;
+  }
+  
+  .App-link {
+    color: rgb(46, 101, 240);
+    justify-content: bottom;
+  }
+  
+  @media (prefers-reduced-motion: no-preference){
+    .App-logo{
+      animation: pulse infinite 3s linear;
+    }
+  }
+  
+  @keyframes pulse{
+    0%{
+      -webkit-transform: scale(1);
+      transform: scale(1);
+    }
+    50%{
+      -webkit-transform: scale(0.8);
+      transform: scale(0.8);
+    }
+    100%{
+      -webkit-transform: scale(1);
+      transform: scale(1);
+    }
+  }
