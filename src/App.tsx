@@ -161,7 +161,7 @@ const App: React.FC = () => {
         });
 
         // TODO -- is this considered good TS?
-        const bintAmount: bigint = amtLovelace as unknown as bigint;
+        const bintAmount: bigint = BigInt(amtLovelace);
 
         const deposit: IDeposit = {
             input_from_party: alice,
@@ -219,7 +219,9 @@ const App: React.FC = () => {
         const buyerAddr32: AddressBech32 = await browserWallet.getChangeAddress();
         const buyerAddr: string = unAddressBech32(buyerAddr32);
 
+        // comes from our wallet connection
         const buyer: Party = { address: buyerAddr};
+        // comes from UI
         const receiver: Party = {address: toAddrRef};
 
         const runtimeLifecycle = await mkRuntimeLifecycle({
@@ -229,12 +231,13 @@ const App: React.FC = () => {
 
         const sGiftContract: Contract = mkSmartGift(amtLovelace, buyer, receiver);
 
+        // ctcID = [ctcID, txnhash]
         const ctcID = await runtimeLifecycle.contracts.createContract({
             contract: sGiftContract,
         });
         setCtcGift(ctcID[0]);
         
-        const bintAmount: bigint = amtLovelace as unknown as bigint;
+        const bintAmount: bigint = BigInt(amtLovelace);
 
         const deposit: IDeposit = {
             input_from_party: buyer,

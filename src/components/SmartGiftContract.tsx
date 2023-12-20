@@ -2,9 +2,8 @@ import { Contract, lovelace, Party, datetoTimeout, Payee } from '@marlowe.io/lan
 import { MY_NAMI, MY_LACE } from '../utils/constants.tsx';
 
 function mkSmartGift(amtLovelace: number, buyer: Party, receiver: Party){
-    const bintAmount: bigint = amtLovelace as unknown as bigint;
+    const bintAmount: bigint = BigInt(amtLovelace);
     // hardcoding the shop address
-    // maybe this is wrong?
     const payShopWallet: Payee = { party: MY_NAMI };
 
     const smartGiftContract: Contract = {
@@ -14,6 +13,7 @@ function mkSmartGift(amtLovelace: number, buyer: Party, receiver: Party){
             when: [
               {
                 then: {
+                  // purchase option
                   then: {
                     token: lovelace,
                     to: payShopWallet,
@@ -22,7 +22,6 @@ function mkSmartGift(amtLovelace: number, buyer: Party, receiver: Party){
                     from_account: receiver,
                   },
                   if: {
-                    // how do I frame the purchase from the receiver standpoint
                     value: {
                       value_of_choice: {
                         choice_owner: receiver,
@@ -31,6 +30,7 @@ function mkSmartGift(amtLovelace: number, buyer: Party, receiver: Party){
                     },
                     equal_to: 1n,
                   },
+                  // refund option
                   else: {
                     token: lovelace,
                     to: { account: buyer },
@@ -39,12 +39,13 @@ function mkSmartGift(amtLovelace: number, buyer: Party, receiver: Party){
                     from_account: receiver,
                   },
                 },
+                // choices
                 case: {
                   for_choice: {
                     choice_owner: receiver,
                     choice_name: "purchase",
                   },
-                  choose_between: [{ to: 1n, from: 0n }],// how to deal with choices..
+                  choose_between: [{ to: 1n, from: 0n }],
                 },
               },
             ],

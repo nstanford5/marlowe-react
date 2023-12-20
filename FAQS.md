@@ -7,7 +7,7 @@
 3. What are the steps to bring a contract over from the playground?
     - Create and simulate in Playground
     - Download as JSON
-    - Plug JSON in `./components/{SomeContract.tsx}`
+    - Plug JSON in `./components/SomeContract.tsx`
     - Replace hardcoded data with configurable identifiers from UI components
     - Execute / interact using TS-SDK
     
@@ -25,7 +25,7 @@ The address that is making the request is not allowed to perform that action. Yo
 The contract cannot be located in the runtime instance -- likely you need to wait for the creation txn to finish confirming.
 
 ### Nami wallet not recognized by getInstalledWalletExtensions()
-See this [GitHub Discussion](https://github.com/input-output-hk/marlowe-ts-sdk/discussions/140)
+See this [GitHub Issue](https://github.com/input-output-hk/marlowe-ts-sdk/issues/141)
 
 ### Uncaught runtime errors
 #### "name":"SyntaxError" ... Error in $.contract...
