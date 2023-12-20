@@ -1,12 +1,17 @@
 ## Potential FAQs
 1. How do I form a deposit?
+
 2. How do I handle choices?
+    - How do I setup Bounds?
+
 3. What are the steps to bring a contract over from the playground?
     - Create and simulate in Playground
     - Download as JSON
     - Plug JSON in `./components/{SomeContract.tsx}`
     - Replace hardcoded data with configurable identifiers from UI components
     - Execute / interact using TS-SDK
+    
+4. Do I need a runtimeLifecycle object specified for each address that will need to sign txns for the DApp?
 
 ## Common Issues
 

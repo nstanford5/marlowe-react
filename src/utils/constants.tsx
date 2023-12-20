@@ -4,6 +4,7 @@ export const views = {
     INTRO: 'Intro',
     CONTRACTS: 'Contracts',
     SIMPLE_DEMO: 'Simple Demo',
+    SMART_GIFT: 'Smart Gift',
 }
 
 export const constants = {
@@ -18,6 +19,7 @@ export const constants = {
 export const RUNTIME_URL: string = "https://marlowe-runtime-preprod-web.demo.scdev.aws.iohkdev.io";
 
 // nami is a single address wallet -- this address does not change throughtout execution
+// add your nami test wallet here for use across the repo
 export const MY_NAMI: Party = {address: 'addr_test1qqms53j46dvjxre8pwnq22jtfxak0gn8qaadpwducpmc6kt8vy88dkve8vjaap9d4wgt58n8f58jna69hvh7fxmsva5q99hyur'};
 
 // lace is a single address wallet?

@@ -4,17 +4,25 @@ import TextField from '@mui/material/TextField';
 import { useRef } from 'react';
 
 export default function SimpleDemo({handleAmount}){
-    const valueRef = useRef();
-    const sendValue = () => { handleAmount(Number(valueRef.current.value)); };
+    const amountRef = useRef();
+    const bobAddrRef = useRef();
+    const sendValue = () => {
+        // does this work with lowercase 'number'? 
+        handleAmount(Number(amountRef.current.value), bobAddrRef.current.value); 
+    };
 
     return(
             <div className="center">
                 This contract takes a deposit from user A and sends it to user B
-
                 <TextField 
                     id="amount"
                     label="deposit amount in ADA"
-                    inputRef={valueRef}
+                    inputRef={amountRef}
+                />
+                <TextField 
+                    id="to-address"
+                    label="to address"
+                    inputRef={bobAddrRef}
                 />
                 <Button 
                     variant="contained"
