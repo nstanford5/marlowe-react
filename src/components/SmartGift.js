@@ -1,25 +1,24 @@
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import './index.css';
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 
-export default function SmartGift({handleSmartGift}){
+export default function SmartGift({handleSmartGift, submitFlag, choiceFlag, handleChoice0, handleChoice1}){
     const amountRef = useRef();
-    const toAddrRef = useRef();
-    // TODO -- do I need this?
-    const [choiceFlag, setChoiceFlag] = useState(false);
-    const [purchaseFlag, setPurchaseFlag] = useState(true);
+    const toAddrRef = useRef();    
     const sendValue = () => {
         handleSmartGift(Number(amountRef.current.value), toAddrRef.current.value);
     }
     return(
         <div className="center">
             This contract allows you to designate an address for a specified amount...
+            <p/>
             <TextField 
                 id="amount"
                 label="deposit amount in ADA"
                 inputRef={amountRef}
             />
+            <p/>
             <TextField 
                 id="to-address"
                 label="to-address"
@@ -30,7 +29,7 @@ export default function SmartGift({handleSmartGift}){
                 color="secondary"
                 size="small"
                 onClick={sendValue}
-                // add disabled here
+                disabled={submitFlag}
             >
                 Submit
             </Button>
@@ -38,8 +37,8 @@ export default function SmartGift({handleSmartGift}){
                 variant="contained"
                 color="secondary"
                 size="small"
-                //onClick={}// TODO
-                disabled={purchaseFlag}
+                onClick={handleChoice1}
+                disabled={choiceFlag}
             >
                 Purchase Item
             </Button>
@@ -47,8 +46,8 @@ export default function SmartGift({handleSmartGift}){
                 variant="contained"
                 color="secondary"
                 size="small"
-                //onClick={}// TODO
-                disabled={purchaseFlag}
+                onClick={handleChoice0}
+                disabled={choiceFlag}
             >
                 Return Gift Card
             </Button>

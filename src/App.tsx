@@ -16,7 +16,7 @@ import { mkRuntimeLifecycle } from '@marlowe.io/runtime-lifecycle/browser';
 import { SupportedWalletName } from '@marlowe.io/wallet/browser';
 import { ApplyInputsRequest } from '@marlowe.io/runtime-lifecycle/api';
 import * as wallet from '@marlowe.io/wallet';
-import { AddressBech32, unAddressBech32 } from '@marlowe.io/runtime-core';
+import { AddressBech32, unAddressBech32, ContractId } from '@marlowe.io/runtime-core';
 import { 
     Contract, 
     Input, 
@@ -27,7 +27,7 @@ import {
     ChoiceName, 
     Bound,
     Choice,
-    IChoice
+    IChoice,
 } from '@marlowe.io/language-core-v1';
 
 
@@ -41,6 +41,10 @@ const App: React.FC = () => {
     const [demoFlag, setDemoFlag] = useState(false);
     const [openSnack, setOpenSnack] = useState(false);
     const [giftFlag, setGiftFlag] = useState(false);
+    const [submitFlag, setSubmitFlag] = useState(false);
+    const [choiceFlag, setChoiceFlag] = useState(true);
+    const [toAddress, setToAddress] = useState('');
+    const [ctcGift, setCtcGift] = useState<ContractId>();
     const handleSnackClose = () => { setOpenSnack(false); };
     const handleOpenModal = () => { setOpenModal(true); }
     const handleCloseModal = () => { setOpenModal(false); }
@@ -48,9 +52,71 @@ const App: React.FC = () => {
     let names: string[] = [];
 
     // converts ADA to Lovelace
+    // should we include this is the SDK?
     const parseADA = (num: Number) => {
         const numbNum: number = num as unknown as number;
         return numbNum * 1000000;
+    };
+
+    // refund choice handler for Smart Gift Card
+    function handleChoice0(){
+        setChoiceFlag(true);
+        const choiceName: ChoiceName = "purchase";
+        const receiver: Party = {address: toAddress};
+
+        const choices: ChoiceId = {
+            choice_name: choiceName,
+            choice_owner: receiver,
+        };
+
+        const refundChoice: IChoice = {
+            for_choice_id: choices,
+            input_that_chooses_num: 0n,
+        }
+        // can I add this to the SmartContract.tsx file and import it here?
+        // could use a return
+        handleChoiceSubmit(refundChoice);
+    };
+
+    // purchaseChoice handler for Smart Gift Card
+    function handleChoice1(){
+        setChoiceFlag(true);
+        const choiceName: ChoiceName = "purchase";
+        const receiver: Party = {address: toAddress};
+
+        const choices: ChoiceId = {
+            choice_name: choiceName,
+            choice_owner: receiver,
+        };
+
+        const purchaseChoice: IChoice = {
+            for_choice_id: choices,
+            input_that_chooses_num: 1n,
+        }
+        handleChoiceSubmit(purchaseChoice);
+    };
+
+    // common function for applying inputs to SmartGiftCard
+    async function handleChoiceSubmit(numChoice: IChoice) {
+
+        const choiceInputs: Input[] = [numChoice];
+        const choiceRequest: ApplyInputsRequest = {
+            inputs: choiceInputs,
+        };
+
+        // QUESTION -- do I need a runtimeLifecycle object for each address that will
+        // need to sign txns for the DApp?
+        const recRuntimeLifecycle = await mkRuntimeLifecycle({
+            walletName: 'eternl',// TODO -- remove hardcoded
+            runtimeURL: RUNTIME_URL,
+        });
+        console.log(`Connected receiver address to runtime instance`);
+
+        console.log(`Applying input choices...`);
+
+        const ctcGiftID: ContractId = ctcGift as unknown as ContractId;
+        const choiceTxn = await recRuntimeLifecycle.contracts.applyInputs(ctcGiftID, choiceRequest);
+        console.log(`Choice submission successful.\nTXN Receipt: ${choiceTxn}`);
     };
     
     /**
@@ -142,6 +208,8 @@ const App: React.FC = () => {
      * 7. close
      */
     async function handleSmartGift(amtRef: Number, toAddrRef: string){
+        setSubmitFlag(true);
+        setToAddress(toAddrRef);
         console.log(`The number you entered was: ${amtRef}`);
         const amtLovelace = parseADA(amtRef);
         console.log(`We converted that to ${amtLovelace} lovelace`);
@@ -164,6 +232,7 @@ const App: React.FC = () => {
         const ctcID = await runtimeLifecycle.contracts.createContract({
             contract: sGiftContract,
         });
+        setCtcGift(ctcID[0]);
         
         const bintAmount: bigint = amtLovelace as unknown as bigint;
 
@@ -189,50 +258,8 @@ const App: React.FC = () => {
         if(!depositConfirm){ console.log(`The deposit failed.`); }
 
         console.log(`The contract is waiting for a Choice from the receiver`);
-        
-        // TODO
-        // choice from receiver at UI
-        // if 1 send to shop
-        // if 0 send back to buyer
-
-        // dealing with choices...
-        const choiceName: ChoiceName = "purchase";
-
-        const choices: ChoiceId = {
-            choice_name: choiceName,
-            choice_owner: receiver,
-        };
-
-        // TODO -- bring the zero in from the button
-        const refundChoice: IChoice = {
-            for_choice_id: choices,
-            input_that_chooses_num: 0n,
-        }
-
-        // TODO -- bring the 1 in from the button
-        const purchaseChoice: IChoice = {
-            for_choice_id: choices,
-            input_that_chooses_num: 1n,
-        }
-
-        // TODO -- create branches from inputs to ApplyInputsRequest
-        // currently forces a 1 input
-        const choiceInputs: Input[] = [purchaseChoice];
-        const choiceRequest: ApplyInputsRequest = {
-            inputs: choiceInputs,
-        };
-
-        // QUESTION -- do I need a runtimeLifecycle object for each address that will
-        // need to sign txns for the DApp?
-        const recRuntimeLifecycle = await mkRuntimeLifecycle({
-            walletName: 'eternl',// TODO -- remove hardcoded
-            runtimeURL: RUNTIME_URL,
-        });
-        console.log(`Connected receiver address to runtime instance`);
-
-        console.log(`Applying input choices...`);
-        const choiceTxn = await recRuntimeLifecycle.contracts.applyInputs(ctcID[0], choiceRequest);
-        console.log(`Choice submission successful.\nTXN Receipt: ${choiceTxn}`);
+        setChoiceFlag(false);// enable buttons at UI
+        // wait for choice from UI
     }
 
     // we only want this to run once
@@ -245,7 +272,7 @@ const App: React.FC = () => {
         console.log(`Browser Wallet Extensions: ${names}`);
     }, []);
 
-    const startSimpleDemo = async () => {
+    const startSimpleDemo = () => {
         setDemoFlag(true);// do I need this if I'm going to change pages?
         setView(views.SIMPLE_DEMO);
     }
@@ -279,7 +306,13 @@ const App: React.FC = () => {
                 startSmartGift={startSmartGift}
             />}
             {view === views.SIMPLE_DEMO && <SimpleDemo handleAmount={handleAmount}/>}
-            {view === views.SMART_GIFT && <SmartGift handleSmartGift={handleSmartGift}/>}
+            {view === views.SMART_GIFT && <SmartGift 
+                handleSmartGift={handleSmartGift}
+                submitFlag={submitFlag}
+                choiceFlag={choiceFlag}
+                handleChoice0={handleChoice0}
+                handleChoice1={handleChoice1}
+            />}
         </div>
     );
 };

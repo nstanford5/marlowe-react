@@ -16,7 +16,7 @@ export default function Contracts({
                 Simple Demo Contract
             </Button>
             <Button onClick={startSmartGift} disabled={giftFlag} variant="contained" color="secondary">
-                Smart Gift Card
+                Smart Gift Card Contract
             </Button>
         </Box>
     );
