@@ -2,6 +2,12 @@
 
 This repository is for educational purposes, it should *not* be used in production environments.
 
+## Installation
+1. Clone the repository
+    `git clone https://github.com/nstanford5/marlowe-react.git`
+2. Install dependencies
+    `npm i`
+
 ### `npm start`
 
 Runs the app in development mode.\
@@ -17,5 +23,9 @@ This repo uses the React library from [MaterialUI](https://mui.com/material-ui/)
 ### Web3 Features
 
 The DApp searches for users wallets and connects them to an active runtime instance. It will have demo DApps to choose from after you are connected and be prepared for cloning to build on top of.
+
+
+#### Dev Notes
+1. What about a wrapper function that converts ADA to lovelace? Does it exist?
 
  
