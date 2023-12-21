@@ -3,11 +3,11 @@ import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import { useRef } from 'react';
 
-export default function SimpleDemo({handleAmount}){
+export default function SimpleDemo({handleSimpleDemo}){
     const amountRef = useRef();
     const bobAddrRef = useRef();
     const sendValue = () => {
-        handleAmount(Number(amountRef.current.value), bobAddrRef.current.value); 
+        handleSimpleDemo(Number(amountRef.current.value), bobAddrRef.current.value); 
     };
 
     return(

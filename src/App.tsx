@@ -25,8 +25,6 @@ import {
     lovelace, 
     ChoiceId, 
     ChoiceName, 
-    Bound,
-    Choice,
     IChoice,
 } from '@marlowe.io/language-core-v1';
 
@@ -53,9 +51,7 @@ const App: React.FC = () => {
 
     // converts ADA to Lovelace
     // should we include this is the SDK?
-    const parseADA = (num: number) => {
-        return num * 1000000;
-    };
+    const parseADA = (num: number) => { return num * 1000000; };
 
     // refund choice handler for Smart Gift Card
     function handleChoice0(){
@@ -121,16 +117,14 @@ const App: React.FC = () => {
     /**
      * Build this for demo
      * 
-     * RE-NAME -- function?
-     * 
      * 1. connect to runtime
      * 2. create contract txn
      * 3. wait for txn confirmation
      * 4. building inputs
      * 5. Submitting inputs
      */
-    async function handleAmount(amt: number, bobAddrRef: string){
-        console.log(`The amount you entered is: ${amt}`);
+    async function handleSimpleDemo(amt: number, bobAddrRef: string){
+        console.log(`The amount you entered is: ${amt} ADA`);
         const amtLovelace = parseADA(amt);
         console.log(`We converted that to: ${amtLovelace} lovelace`);
         const supportedWallet: SupportedWalletName = walletChoice as SupportedWalletName;
@@ -159,7 +153,6 @@ const App: React.FC = () => {
             contract: myContract,
         });
 
-        // TODO -- is this considered good TS?
         const bintAmount: bigint = BigInt(amtLovelace);
 
         const deposit: IDeposit = {
@@ -179,18 +172,10 @@ const App: React.FC = () => {
         // add something to UI to indicate this
         const contractConfirm: boolean = await bWallet.waitConfirmation(ctID[1]);
         console.log(`Contract creation txn confirmed is: ${contractConfirm}\nTXID(input to Cardanoscan): ${ctID[1]}`);
-
-        if(contractConfirm){
-            try{
-                const txId = await runtimeLifecycle.contracts.applyInputs(ctID[0], depositRequest);
-                const depositConfirm: boolean = await bWallet.waitConfirmation(txId)
-                console.log(`Txn confirmed: ${depositConfirm}\nHere is your receipt${txId}`);
-            } catch(e) {
-                console.log(`Error: ${e}`);
-            }
-        } else {
-            console.log(`The transaction was not confirmed.`);
-        }
+    
+        const txId = await runtimeLifecycle.contracts.applyInputs(ctID[0], depositRequest);
+        const depositConfirm: boolean = await bWallet.waitConfirmation(txId)
+        console.log(`Txn confirmed: ${depositConfirm}\nHere is your receipt${txId}`);
     }
 
     /**
@@ -307,7 +292,7 @@ const App: React.FC = () => {
                 giftFlag={giftFlag}
                 startSmartGift={startSmartGift}
             />}
-            {view === views.SIMPLE_DEMO && <SimpleDemo handleAmount={handleAmount}/>}
+            {view === views.SIMPLE_DEMO && <SimpleDemo handleSimpleDemo={handleSimpleDemo}/>}
             {view === views.SMART_GIFT && <SmartGift 
                 handleSmartGift={handleSmartGift}
                 submitFlag={submitFlag}
