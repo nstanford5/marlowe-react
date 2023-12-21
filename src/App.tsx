@@ -53,9 +53,8 @@ const App: React.FC = () => {
 
     // converts ADA to Lovelace
     // should we include this is the SDK?
-    const parseADA = (num: Number) => {
-        const numbNum: number = num as unknown as number;
-        return numbNum * 1000000;
+    const parseADA = (num: number) => {
+        return num * 1000000;
     };
 
     // refund choice handler for Smart Gift Card
@@ -130,7 +129,7 @@ const App: React.FC = () => {
      * 4. building inputs
      * 5. Submitting inputs
      */
-    async function handleAmount(amt: Number, bobAddrRef: string){
+    async function handleAmount(amt: number, bobAddrRef: string){
         console.log(`The amount you entered is: ${amt}`);
         const amtLovelace = parseADA(amt);
         console.log(`We converted that to: ${amtLovelace} lovelace`);
@@ -207,7 +206,7 @@ const App: React.FC = () => {
      * 6. If one -- send to shop
      * 7. close
      */
-    async function handleSmartGift(amtRef: Number, toAddrRef: string){
+    async function handleSmartGift(amtRef: number, toAddrRef: string){
         setSubmitFlag(true);
         setToAddress(toAddrRef);
         console.log(`The number you entered was: ${amtRef}`);
