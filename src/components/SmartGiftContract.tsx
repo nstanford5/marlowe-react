@@ -1,8 +1,8 @@
 import { Contract, lovelace, Party, datetoTimeout, Payee } from '@marlowe.io/language-core-v1';
-import { MY_NAMI, MY_LACE } from '../utils/constants.tsx';
+import { MY_NAMI } from '../utils/constants.tsx';
 
 function mkSmartGift(amtLovelace: number, buyer: Party, receiver: Party){
-    const bintAmount: bigint = BigInt(amtLovelace);
+    const bintAmount = BigInt(amtLovelace);
     // hardcoding the shop address
     const payShopWallet: Payee = { party: MY_NAMI };
 

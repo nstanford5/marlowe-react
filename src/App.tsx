@@ -125,14 +125,14 @@ const App: React.FC = () => {
      */
     async function handleSimpleDemo(amt: number, bobAddrRef: string){
         console.log(`The amount you entered is: ${amt} ADA`);
-        const amtLovelace = parseADA(amt);
+        const amtLovelace = parseADA(amt);// do the manual conversion here instead amt * 1000000;
         console.log(`We converted that to: ${amtLovelace} lovelace`);
         const supportedWallet: SupportedWalletName = walletChoice as SupportedWalletName;
         const bWallet = await wallet.mkBrowserWallet(supportedWallet);
 
         // get the address from the contract deployer
-        const aliceAddr32: AddressBech32 = await bWallet.getChangeAddress();
-        const aliceAddr: string = unAddressBech32(aliceAddr32);
+        const aliceAddr32 = await bWallet.getChangeAddress();
+        const aliceAddr = unAddressBech32(aliceAddr32);
 
         const alice: Party = {address: aliceAddr };
         // get address from UI
@@ -145,15 +145,14 @@ const App: React.FC = () => {
         });
 
         // create contract from ./components/SimpleDemoContract.tsx
-        const myContract: Contract = mkSimpleDemo(amtLovelace, alice, bob);
+        const myContract = mkSimpleDemo(amtLovelace, alice, bob);
 
-        // deploy contract, intiate signing
-        // ctID = [contractId, txn string]
-        const ctID = await runtimeLifecycle.contracts.createContract({
+        // deploy contract, initiate signing
+        const [contractId, txnId] = await runtimeLifecycle.contracts.createContract({
             contract: myContract,
         });
 
-        const bintAmount: bigint = BigInt(amtLovelace);
+        const bintAmount = BigInt(amtLovelace);
 
         const deposit: IDeposit = {
             input_from_party: alice,
@@ -170,11 +169,11 @@ const App: React.FC = () => {
 
         // We must wait for the contract creation to finalize before deposits are available
         // add something to UI to indicate this
-        const contractConfirm: boolean = await bWallet.waitConfirmation(ctID[1]);
-        console.log(`Contract creation txn confirmed is: ${contractConfirm}\nTXID(input to Cardanoscan): ${ctID[1]}`);
+        const contractConfirm = await bWallet.waitConfirmation(txnId);
+        console.log(`Contract creation txn confirmed is: ${contractConfirm}\nTXID(input to Cardanoscan): ${txnId}`);
     
-        const txId = await runtimeLifecycle.contracts.applyInputs(ctID[0], depositRequest);
-        const depositConfirm: boolean = await bWallet.waitConfirmation(txId)
+        const txId = await runtimeLifecycle.contracts.applyInputs(contractId, depositRequest);
+        const depositConfirm = await bWallet.waitConfirmation(txId)
         console.log(`Txn confirmed: ${depositConfirm}\nHere is your receipt${txId}`);
     }
 
@@ -201,7 +200,7 @@ const App: React.FC = () => {
         const browserWallet = await wallet.mkBrowserWallet(supportedWallet);
 
         const buyerAddr32: AddressBech32 = await browserWallet.getChangeAddress();
-        const buyerAddr: string = unAddressBech32(buyerAddr32);
+        const buyerAddr = unAddressBech32(buyerAddr32);
 
         // comes from our wallet connection
         const buyer: Party = { address: buyerAddr};
@@ -213,15 +212,15 @@ const App: React.FC = () => {
             runtimeURL: RUNTIME_URL,
         });
 
-        const sGiftContract: Contract = mkSmartGift(amtLovelace, buyer, receiver);
+        const sGiftContract = mkSmartGift(amtLovelace, buyer, receiver);
 
         // ctcID = [ctcID, txnhash]
-        const ctcID = await runtimeLifecycle.contracts.createContract({
+        const [ctcID, txnID] = await runtimeLifecycle.contracts.createContract({
             contract: sGiftContract,
         });
-        setCtcGift(ctcID[0]);
+        setCtcGift(ctcID);
         
-        const bintAmount: bigint = BigInt(amtLovelace);
+        const bintAmount = BigInt(amtLovelace);
 
         const deposit: IDeposit = {
             input_from_party: buyer,
@@ -235,14 +234,12 @@ const App: React.FC = () => {
             inputs: depositInputs
         };
 
-        const contractConfirm: boolean = await browserWallet.waitConfirmation(ctcID[1]);
-        console.log(`Contract creation txn confirmed is: ${contractConfirm}\nTXID(input to Cardanoscan): ${ctcID[1]}`);
+        const contractConfirm: boolean = await browserWallet.waitConfirmation(txnID);
+        console.log(`Contract creation txn confirmed is: ${contractConfirm}\nTXID(input to Cardanoscan): ${txnID}`);
 
-        const txId = await runtimeLifecycle.contracts.applyInputs(ctcID[0], depositRequest);
-        const depositConfirm: boolean = await browserWallet.waitConfirmation(txId);
+        const txId = await runtimeLifecycle.contracts.applyInputs(ctcID, depositRequest);
+        const depositConfirm = await browserWallet.waitConfirmation(txId);
         console.log(`Txn confirmed: ${depositConfirm}`);
-
-        if(!depositConfirm){ console.log(`The deposit failed.`); }
 
         console.log(`The contract is waiting for a Choice from the receiver`);
         setChoiceFlag(false);// enable buttons at UI

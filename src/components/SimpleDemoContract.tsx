@@ -1,7 +1,8 @@
 import { Contract, lovelace, Party, datetoTimeout } from '@marlowe.io/language-core-v1';
 
 function mkSimpleDemo(amtLovelace: number, alice: Party, bob: Party){
-    const bintAmount: bigint = BigInt(amtLovelace);
+    const bintAmount = BigInt(amtLovelace);
+
     const simpleDemoContract: Contract = {
       when: [
         {
@@ -15,7 +16,7 @@ function mkSimpleDemo(amtLovelace: number, alice: Party, bob: Party){
         },
       ],
       timeout_continuation: "close",
-      timeout: datetoTimeout(new Date("2024-12-31 23:59:59")),
+      timeout: datetoTimeout(new Date("2023-12-31 11:59:59")),
     };
     return simpleDemoContract;
 }
