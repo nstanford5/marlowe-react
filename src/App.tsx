@@ -18,7 +18,6 @@ import { ApplyInputsRequest } from '@marlowe.io/runtime-lifecycle/api';
 import * as wallet from '@marlowe.io/wallet';
 import { AddressBech32, unAddressBech32, ContractId } from '@marlowe.io/runtime-core';
 import { 
-    Contract, 
     Input, 
     IDeposit, 
     Party, 
@@ -50,7 +49,6 @@ const App: React.FC = () => {
     let names: string[] = [];
 
     // converts ADA to Lovelace
-    // should we include this is the SDK?
     const parseADA = (num: number) => { return num * 1000000; };
 
     // refund choice handler for Smart Gift Card
@@ -109,8 +107,7 @@ const App: React.FC = () => {
 
         console.log(`Applying input choices...`);
 
-        const ctcGiftID: ContractId = ctcGift as unknown as ContractId;
-        const choiceTxn = await recRuntimeLifecycle.contracts.applyInputs(ctcGiftID, choiceRequest);
+        const choiceTxn = await recRuntimeLifecycle.contracts.applyInputs(ctcGift as ContractId, choiceRequest);
         console.log(`Choice submission successful.\nTXN Receipt: ${choiceTxn}`);
     };
     
@@ -132,6 +129,7 @@ const App: React.FC = () => {
 
         // get the address from the contract deployer
         const aliceAddr32 = await bWallet.getChangeAddress();
+        // this won't be needed in future releases
         const aliceAddr = unAddressBech32(aliceAddr32);
 
         const alice: Party = {address: aliceAddr };
