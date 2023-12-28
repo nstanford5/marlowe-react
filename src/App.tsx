@@ -124,7 +124,7 @@ const App: React.FC = () => {
         console.log(`The amount you entered is: ${amt} ADA`);
         const amtLovelace = parseADA(amt);// do the manual conversion here instead amt * 1000000;
         console.log(`We converted that to: ${amtLovelace} lovelace`);
-        const supportedWallet: SupportedWalletName = walletChoice as SupportedWalletName;
+        const supportedWallet = walletChoice as SupportedWalletName;
         const bWallet = await wallet.mkBrowserWallet(supportedWallet);
 
         // get the address from the contract deployer

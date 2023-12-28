@@ -4,7 +4,7 @@ import { MY_NAMI } from '../utils/constants.tsx';
 function mkSmartGift(amtLovelace: number, buyer: Party, receiver: Party){
     const bintAmount = BigInt(amtLovelace);
     // hardcoding the shop address
-    const payShopWallet: Payee = { party: MY_NAMI };
+    const shopWallet: Payee = { party: MY_NAMI };
 
     const smartGiftContract: Contract = {
       when: [
@@ -16,7 +16,7 @@ function mkSmartGift(amtLovelace: number, buyer: Party, receiver: Party){
                   // purchase option
                   then: {
                     token: lovelace,
-                    to: payShopWallet,
+                    to: shopWallet,
                     then: "close",
                     pay: bintAmount,
                     from_account: receiver,
