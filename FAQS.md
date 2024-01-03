@@ -16,7 +16,9 @@
 ## Common Issues
 
 ### 400 Bad Request
-Your contract creation request is malformed. Check the types that you are inputting to your Smart Contract.
+1. Your contract creation request is malformed. Check the types that you are inputting to your Smart Contract.
+
+2. Have you been developing for a few days? Check your timeouts have not expired in your Smart Contract.
 
 ### 403 Forbidden
 The address that is making the request is not allowed to perform that action. You may have incorrectly specified which wallet is interacting with the Smart Contract. TODO -- In this repository connecting a wallet does not yet guarantee that wallet is authorized to interact with the SC. Different browser extensions will have different implementations of this, because of multiple wallet address features.

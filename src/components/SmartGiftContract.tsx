@@ -1,10 +1,10 @@
 import { Contract, lovelace, Party, datetoTimeout, Payee } from '@marlowe.io/language-core-v1';
-import { MY_NAMI } from '../utils/constants.tsx';
+import { MY_ETERNL } from '../utils/constants.tsx';
 
 function mkSmartGift(amtLovelace: number, buyer: Party, receiver: Party){
-    const bintAmount = BigInt(amtLovelace);
     // hardcoding the shop address
-    const shopWallet: Payee = { party: MY_NAMI };
+    const shopWallet: Payee = { party: MY_ETERNL };
+    const bintAmount = BigInt(amtLovelace);// convert to use in SC template
 
     const smartGiftContract: Contract = {
       when: [
@@ -56,7 +56,7 @@ function mkSmartGift(amtLovelace: number, buyer: Party, receiver: Party){
               pay: bintAmount,
               from_account: receiver,
             },
-            timeout: datetoTimeout(new Date("2024-12-20 12:00:00")),
+            timeout: datetoTimeout(new Date("2025-01-01 12:00:00")),
           },
           // initial deposit
           case: {

@@ -40,7 +40,7 @@ const App: React.FC = () => {
     const [giftFlag, setGiftFlag] = useState(false);
     const [submitFlag, setSubmitFlag] = useState(false);
     const [choiceFlag, setChoiceFlag] = useState(true);
-    const [toAddress, setToAddress] = useState('');
+    const [toAddress, setToAddress] = useState('');// do I really need a state variable for just this instance?
     const [ctcGift, setCtcGift] = useState<ContractId>();
     const handleSnackClose = () => { setOpenSnack(false); };
     const handleOpenModal = () => { setOpenModal(true); }
@@ -49,7 +49,12 @@ const App: React.FC = () => {
     let names: string[] = [];
 
     // converts ADA to Lovelace
-    const parseADA = (num: number) => { return num * 1000000; };
+    const parseADA = (num: number) => {
+        const lovelace = num * 1000000;
+        console.log(`The number you entered is: ${num} ADA\n` +
+                            `We converted that to ${lovelace} lovelace`);
+        return lovelace; 
+    };
 
     // refund choice handler for Smart Gift Card
     function handleChoice0(){
@@ -66,12 +71,13 @@ const App: React.FC = () => {
             for_choice_id: choices,
             input_that_chooses_num: 0n,
         }
-        // can I add this to the SmartContract.tsx file and import it here?
-        // could use a return
+
         handleChoiceSubmit(refundChoice);
     };
 
     // purchaseChoice handler for Smart Gift Card
+    // can I move the handleChoices inside the other SmartGift function?
+    // might have trouble with the setState call here
     function handleChoice1(){
         setChoiceFlag(true);
         const choiceName: ChoiceName = "purchase";
@@ -92,23 +98,21 @@ const App: React.FC = () => {
     // common function for applying inputs to SmartGiftCard
     async function handleChoiceSubmit(numChoice: IChoice) {
 
+        // formulate choice inputs
         const choiceInputs: Input[] = [numChoice];
         const choiceRequest: ApplyInputsRequest = {
             inputs: choiceInputs,
         };
 
-        // QUESTION -- do I need a runtimeLifecycle object for each address that will
-        // need to sign txns for the DApp?
+        // make a runtimeLifecycle object so that receiver can apply inputs to SC
         const recRuntimeLifecycle = await mkRuntimeLifecycle({
-            walletName: 'eternl',// TODO -- remove hardcoded
+            walletName: 'lace',// TODO -- remove hardcoded
             runtimeURL: RUNTIME_URL,
         });
-        console.log(`Connected receiver address to runtime instance`);
-
-        console.log(`Applying input choices...`);
+        console.log(`Connected receiver address to runtime instance.\nApplying input choice...`);
 
         const choiceTxn = await recRuntimeLifecycle.contracts.applyInputs(ctcGift as ContractId, choiceRequest);
-        console.log(`Choice submission successful.\nTXN Receipt: ${choiceTxn}`);
+        console.log(`Choice TXN Receipt: ${choiceTxn}`);
     };
     
     /**
@@ -121,35 +125,34 @@ const App: React.FC = () => {
      * 5. Submitting inputs
      */
     async function handleSimpleDemo(amt: number, bobAddrRef: string){
-        console.log(`The amount you entered is: ${amt} ADA`);
-        const amtLovelace = parseADA(amt);// do the manual conversion here instead amt * 1000000;
+        console.log(`The amount you entered is ${amt}`);
+        const amtLovelace = amt * 1000000;
         console.log(`We converted that to: ${amtLovelace} lovelace`);
+        // connect to runtime instance
         const supportedWallet = walletChoice as SupportedWalletName;
         const bWallet = await wallet.mkBrowserWallet(supportedWallet);
 
-        // get the address from the contract deployer
         const aliceAddr32 = await bWallet.getChangeAddress();
-        // this won't be needed in future releases
         const aliceAddr = unAddressBech32(aliceAddr32);
 
-        const alice: Party = {address: aliceAddr };
-        // get address from UI
+        const alice: Party = {address: aliceAddr};
         const bob: Party = {address: bobAddrRef};
-        
-        // connect to runtime
+
         const runtimeLifecycle = await mkRuntimeLifecycle({
             walletName: supportedWallet,
             runtimeURL: RUNTIME_URL
         });
 
-        // create contract from ./components/SimpleDemoContract.tsx
+        // build the Smart Contract and deploy
         const myContract = mkSimpleDemo(amtLovelace, alice, bob);
 
-        // deploy contract, initiate signing
         const [contractId, txnId] = await runtimeLifecycle.contracts.createContract({
             contract: myContract,
         });
 
+        // wait for confirmation of that txn
+        const contractConfirm = await bWallet.waitConfirmation(txnId);
+        // build and submit a deposit
         const bintAmount = BigInt(amtLovelace);
 
         const deposit: IDeposit = {
@@ -159,26 +162,24 @@ const App: React.FC = () => {
             into_account: bob,
         };
 
-        // prepare deposit input
         const inputs: Input[] = [deposit];
         const depositRequest: ApplyInputsRequest = {
             inputs
         };
 
-        // We must wait for the contract creation to finalize before deposits are available
-        // add something to UI to indicate this
-        const contractConfirm = await bWallet.waitConfirmation(txnId);
-        console.log(`Contract creation txn confirmed is: ${contractConfirm}\nTXID(input to Cardanoscan): ${txnId}`);
-    
         const txId = await runtimeLifecycle.contracts.applyInputs(contractId, depositRequest);
-        const depositConfirm = await bWallet.waitConfirmation(txId)
-        console.log(`Txn confirmed: ${depositConfirm}\nHere is your receipt${txId}`);
-    }
+
+        // verify the deposit
+        const depositConfirm = await bWallet.waitConfirmation(txId);
+        console.log(`Txn confirmed: ${depositConfirm}\nHere is your receipt: ${txId}`);
+    };
 
     /**
-     * TODO -- change console logs to SnackBar action
      * 
      * The steps of this Contract are as follows..
+     * SHOP = ETERNL
+     * BUYER = NAMI
+     * RECEIVER = LACE
      * 
      * 1. Gather input parameters
      * 2. Create and deploy contract
@@ -189,37 +190,53 @@ const App: React.FC = () => {
      * 7. close
      */
     async function handleSmartGift(amtRef: number, toAddrRef: string){
+        // state variables
         setSubmitFlag(true);
         setToAddress(toAddrRef);
-        console.log(`The number you entered was: ${amtRef}`);
+
+        // converting ADA to Lovelace
         const amtLovelace = parseADA(amtRef);
-        console.log(`We converted that to ${amtLovelace} lovelace`);
-        const supportedWallet: SupportedWalletName = walletChoice as SupportedWalletName;
+
+        const supportedWallet = walletChoice as SupportedWalletName;
         const browserWallet = await wallet.mkBrowserWallet(supportedWallet);
 
-        const buyerAddr32: AddressBech32 = await browserWallet.getChangeAddress();
+        // this won't be necessary soon
+        // the problem is here
+        const buyerAddr32 = await browserWallet.getChangeAddress();
         const buyerAddr = unAddressBech32(buyerAddr32);
 
-        // comes from our wallet connection
+        // comes from our wallet connection with the Dapp
         const buyer: Party = { address: buyerAddr};
+
         // comes from UI
         const receiver: Party = {address: toAddrRef};
 
+        // set runtimeLifecycle object
+        console.log(`Connecting to runtime instance...`);
         const runtimeLifecycle = await mkRuntimeLifecycle({
             walletName: supportedWallet,
             runtimeURL: RUNTIME_URL,
         });
 
+        // create Smart Contract
         const sGiftContract = mkSmartGift(amtLovelace, buyer, receiver);
 
-        // ctcID = [ctcID, txnhash]
+        // createContract txn
+        console.log(`Submitting contract to the blockchain...`);
         const [ctcID, txnID] = await runtimeLifecycle.contracts.createContract({
             contract: sGiftContract,
         });
-        setCtcGift(ctcID);
+        setCtcGift(ctcID); 
+
+        // wait for confirmation of createContract txn
+        // when checking in Cardanoscan, it will take a few minutes to reflect the txn
+        const contractConfirm: boolean = await browserWallet.waitConfirmation(txnID);
+        console.log(`Contract creation txn confirmed is: ${contractConfirm}\nTXID(input to Cardanoscan): ${txnID}`);
         
+        // format for use in IDeposit
         const bintAmount = BigInt(amtLovelace);
 
+        // from previous demo
         const deposit: IDeposit = {
             input_from_party: buyer,
             that_deposits: bintAmount,
@@ -227,14 +244,13 @@ const App: React.FC = () => {
             into_account: receiver,
         };
 
+        // formulate deposit, create ApplyInputsRequest
         const depositInputs: Input[] = [deposit];
         const depositRequest: ApplyInputsRequest = {
             inputs: depositInputs
         };
 
-        const contractConfirm: boolean = await browserWallet.waitConfirmation(txnID);
-        console.log(`Contract creation txn confirmed is: ${contractConfirm}\nTXID(input to Cardanoscan): ${txnID}`);
-
+        // apply deposit to our contract ID
         const txId = await runtimeLifecycle.contracts.applyInputs(ctcID, depositRequest);
         const depositConfirm = await browserWallet.waitConfirmation(txId);
         console.log(`Txn confirmed: ${depositConfirm}`);
@@ -242,7 +258,7 @@ const App: React.FC = () => {
         console.log(`The contract is waiting for a Choice from the receiver`);
         setChoiceFlag(false);// enable buttons at UI
         // wait for choice from UI
-    }
+    };
 
     // we only want this to run once
     useEffect(() => {
@@ -257,12 +273,12 @@ const App: React.FC = () => {
     const startSimpleDemo = () => {
         setDemoFlag(true);// do I need this if I'm going to change pages?
         setView(views.SIMPLE_DEMO);
-    }
+    };
 
     const startSmartGift = () => {
         setGiftFlag(true);
         setView(views.SMART_GIFT);
-    }
+    };
 
     return(
         <div className='App'>
