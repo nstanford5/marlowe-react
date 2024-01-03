@@ -3,15 +3,18 @@ import TextField from '@mui/material/TextField';
 import './index.css';
 import { useRef } from 'react';
 
-export default function SmartGift({handleSmartGift, submitFlag, choiceFlag, handleChoice0, handleChoice1}){
+export default function SmartGift({handleSmartGift, submitFlag, choiceFlag, handleDonate, handlePurchase}){
     const amountRef = useRef();
-    const toAddrRef = useRef();    
+    const toAddrRef = useRef();
+    // TODO -- add error handling to text fields  
     const sendValue = () => {
         handleSmartGift(Number(amountRef.current.value), toAddrRef.current.value);
     }
+    
     return(
         <div className="center">
-            This contract allows you to designate an address for a specified amount...
+            This contract allows you purchase a Smart Gift Card. Smart Gift
+            Cards take in an amount and an address to send funds to. 
             <p/>
             <TextField 
                 id="amount"
@@ -37,7 +40,7 @@ export default function SmartGift({handleSmartGift, submitFlag, choiceFlag, hand
                 variant="contained"
                 color="secondary"
                 size="small"
-                onClick={handleChoice1}
+                onClick={handlePurchase}
                 disabled={choiceFlag}
             >
                 Purchase Item
@@ -46,10 +49,10 @@ export default function SmartGift({handleSmartGift, submitFlag, choiceFlag, hand
                 variant="contained"
                 color="secondary"
                 size="small"
-                onClick={handleChoice0}
+                onClick={handleDonate}
                 disabled={choiceFlag}
             >
-                Return Gift Card
+                Donate Gift Card
             </Button>
         </div>
     );
