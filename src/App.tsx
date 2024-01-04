@@ -40,7 +40,7 @@ const App: React.FC = () => {
     const [submitFlag, setSubmitFlag] = useState(false);
     const [choiceFlag, setChoiceFlag] = useState(true);
     const [toAddress, setToAddress] = useState('');
-    const [ctcGift, setCtcGift] = useState<ContractId>();
+    const [ctcGift, setCtcGift] = useState<ContractId>();// pull this from the blockchain for the receiver to connect/interact
     const handleSnackClose = () => { setOpenSnack(false); };
     const handleOpenModal = () => { setOpenModal(true); }
     const handleCloseModal = () => { setOpenModal(false); }

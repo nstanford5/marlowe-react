@@ -30,6 +30,7 @@ function mkSmartGift(amtLovelace: number, buyer: Party, receiver: Party){
                     },
                     equal_to: 1n,
                   },
+                  // this is a duplicate action -- can we make this modular?
                   else: {// choice = 0, donate to charity
                     token: lovelace,
                     to: { account: MY_NAMI_2 },
