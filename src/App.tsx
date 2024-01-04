@@ -13,7 +13,7 @@ import mkSimpleDemo from './components/SimpleDemoContract.tsx';
 import { mkRuntimeLifecycle } from '@marlowe.io/runtime-lifecycle/browser';
 import { SupportedWalletName } from '@marlowe.io/wallet/browser';
 import { ApplyInputsRequest } from '@marlowe.io/runtime-lifecycle/api';
-import * as wallet from '@marlowe.io/wallet';
+import { getInstalledWalletExtensions, mkBrowserWallet } from '@marlowe.io/wallet';
 import { unAddressBech32 } from '@marlowe.io/runtime-core';
 import { 
     Input, 
@@ -59,7 +59,7 @@ const App: React.FC = () => {
         const amtLovelace = parseADA(amt);
 
         const supportedWallet = walletChoice as SupportedWalletName;
-        const bWallet = await wallet.mkBrowserWallet(supportedWallet);
+        const bWallet = await mkBrowserWallet(supportedWallet);
 
         const aliceAddr32 = await bWallet.getChangeAddress();
         // this won't be needed soon
@@ -109,7 +109,7 @@ const App: React.FC = () => {
 
     // we only want this to run once
     useEffect(() => {
-        const installedWalletExtensions = wallet.getInstalledWalletExtensions();
+        const installedWalletExtensions = getInstalledWalletExtensions();
         installedWalletExtensions.forEach((i) => names.push(i.name));
         if(names.includes(constants.NAMI)){ setNami(true); }
         if(names.includes(constants.LACE)){ setLace(true); }

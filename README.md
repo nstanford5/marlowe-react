@@ -27,5 +27,6 @@ The DApp searches for users wallets and connects them to an active runtime insta
 
 #### Dev Notes
 1. What about a wrapper function that converts ADA to lovelace? Does it exist?
+2. What should the organization of this repo look like? Maybe each demo is in a different branch? Or should each demo be its own repo with the scaffolding being a centerpoint for them all?
 
  
