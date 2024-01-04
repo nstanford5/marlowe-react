@@ -1,12 +1,7 @@
 import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
 
-export default function Contracts({
-    startSimpleDemo, 
-    demoFlag,
-    startSmartGift,
-    giftFlag
-}) {
+export default function Contracts({ startSimpleDemo, demoFlag }) {
     return(
         <Box className="center" sx={{ flexGrow: 1}}>
             <p>
@@ -14,9 +9,6 @@ export default function Contracts({
             </p>
             <Button onClick={startSimpleDemo} disabled={demoFlag} variant="contained" color="secondary">
                 Simple Demo Contract
-            </Button>
-            <Button onClick={startSmartGift} disabled={giftFlag} variant="contained" color="secondary">
-                Smart Gift Card Contract
             </Button>
         </Box>
     );

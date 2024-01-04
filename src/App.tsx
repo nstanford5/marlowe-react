@@ -8,23 +8,18 @@ import ButtonAppBar from './components/ButtonAppBar.js';
 import Contracts from './components/Contracts.js';
 import SimpleDemo from './components/SimpleDemo.js';
 import mkSimpleDemo from './components/SimpleDemoContract.tsx';
-import SmartGift from './components/SmartGift.js';
-import mkSmartGift from './components/SmartGiftContract.tsx';
 
 // marlowe TS-SDK imports
 import { mkRuntimeLifecycle } from '@marlowe.io/runtime-lifecycle/browser';
 import { SupportedWalletName } from '@marlowe.io/wallet/browser';
 import { ApplyInputsRequest } from '@marlowe.io/runtime-lifecycle/api';
 import * as wallet from '@marlowe.io/wallet';
-import { unAddressBech32, ContractId } from '@marlowe.io/runtime-core';
+import { unAddressBech32 } from '@marlowe.io/runtime-core';
 import { 
     Input, 
     IDeposit, 
     Party, 
-    lovelace, 
-    ChoiceId, 
-    ChoiceName, 
-    IChoice,
+    lovelace,
 } from '@marlowe.io/language-core-v1';
 
 const App: React.FC = () => {
@@ -36,11 +31,6 @@ const App: React.FC = () => {
     const [openModal, setOpenModal] = useState(false);
     const [demoFlag, setDemoFlag] = useState(false);
     const [openSnack, setOpenSnack] = useState(false);
-    const [giftFlag, setGiftFlag] = useState(false);
-    const [submitFlag, setSubmitFlag] = useState(false);
-    const [choiceFlag, setChoiceFlag] = useState(true);
-    const [toAddress, setToAddress] = useState('');
-    const [ctcGift, setCtcGift] = useState<ContractId>();// pull this from the blockchain for the receiver to connect/interact
     const handleSnackClose = () => { setOpenSnack(false); };
     const handleOpenModal = () => { setOpenModal(true); }
     const handleCloseModal = () => { setOpenModal(false); }
@@ -65,11 +55,9 @@ const App: React.FC = () => {
      * 5. Submitting inputs
      */
     async function handleSimpleDemo(amt: number, bobAddrRef: string){
-        console.log(`The amount you entered is ${amt}`);
-        const amtLovelace = amt * 1000000;
-        console.log(`We converted that to: ${amtLovelace} lovelace`);
+        
+        const amtLovelace = parseADA(amt);
 
-        // connect to runtime instance
         const supportedWallet = walletChoice as SupportedWalletName;
         const bWallet = await wallet.mkBrowserWallet(supportedWallet);
 
@@ -80,186 +68,44 @@ const App: React.FC = () => {
         const alice: Party = {address: aliceAddr};
         const bob: Party = {address: bobAddrRef};
 
+        // connect to runtime instance
         const runtimeLifecycle = await mkRuntimeLifecycle({
             walletName: supportedWallet,
             runtimeURL: RUNTIME_URL
         });
 
-        // build the Smart Contract and deploy
+        // build the Smart Contract
         const myContract = mkSimpleDemo(amtLovelace, alice, bob);
 
+        // deploy the Smart Contract
         const [contractId, txnId] = await runtimeLifecycle.contracts.createContract({
             contract: myContract,
         });
 
         // wait for confirmation of that txn
         const contractConfirm = await bWallet.waitConfirmation(txnId);
-        // build and submit a deposit
-        const bintAmount = BigInt(amtLovelace);
+        console.log(`Contract Creation is: ${contractConfirm}`);
 
+        // build the deposit
+        const bintAmount = BigInt(amtLovelace);
         const deposit: IDeposit = {
             input_from_party: alice,
             that_deposits: bintAmount,
             of_token: lovelace,
             into_account: bob,
         };
-
         const inputs: Input[] = [deposit];
         const depositRequest: ApplyInputsRequest = {
             inputs
         };
 
+        // submit the deposit
         const txId = await runtimeLifecycle.contracts.applyInputs(contractId, depositRequest);
 
         // wait for deposit confirmation and check status
         const depositConfirm = await bWallet.waitConfirmation(txId);
         console.log(`Txn confirmed: ${depositConfirm}\nHere is your receipt: ${txId}`);
-    };
-
-    /**
-     * The steps of this Contract are as follows..
-     * 
-     * 1. Gather input parameters
-     * 2. Create and deploy contract
-     * 3. Deposit from buyer
-     * 4. Choice from receiver
-     * 5. If zero -- send to buyer
-     * 6. If one -- send to shop
-     * 7. close
-     * 
-     * SHOP = ETERNL // hardcoded
-     * BUYER = NAMI // retreived from DApp connection
-     * RECEIVER = LACE // retreived from UI
-     * CHARITY = MY_NAMI_2 // hardcoded
-     */
-    async function handleSmartGift(amtRef: number, toAddrRef: string){
-        // state variables
-        setSubmitFlag(true);
-        setToAddress(toAddrRef);
-
-        // converting ADA to Lovelace
-        const amtLovelace = parseADA(amtRef);
-
-        // prep buyer wallet
-        const supportedWallet = walletChoice as SupportedWalletName;
-        const browserWallet = await wallet.mkBrowserWallet(supportedWallet);
-        const buyerAddr32 = await browserWallet.getChangeAddress();
-        const buyerAddr = unAddressBech32(buyerAddr32);// this won't be necessary soon
-
-        // comes from our wallet connection with the Dapp
-        const buyer: Party = { address: buyerAddr};
-
-        // comes from UI
-        const receiver: Party = {address: toAddrRef};
-
-        // set runtimeLifecycle object
-        console.log(`Connecting to runtime instance...`);
-        const runtimeLifecycle = await mkRuntimeLifecycle({
-            walletName: supportedWallet,
-            runtimeURL: RUNTIME_URL,
-        });
-
-        // create Smart Contract from SmartGiftContract.tsx
-        const sGiftContract = mkSmartGift(amtLovelace, buyer, receiver);
-
-        console.log(`Submitting contract to the blockchain...`);
-        const [ctcID, txnID] = await runtimeLifecycle.contracts.createContract({
-            contract: sGiftContract,
-        });
-        setCtcGift(ctcID); 
-
-        // wait for confirmation of createContract txn
-        // when checking in Cardanoscan, it will take a few minutes to reflect the txn status
-        const contractConfirm = await browserWallet.waitConfirmation(txnID);
-        console.log(`Contract creation txn confirmed is: ${contractConfirm}\nTXID(input to Cardanoscan): ${txnID}`);
-        
-        // format for use in IDeposit
-        const bintAmount = BigInt(amtLovelace);
-
-        // from previous demo
-        const deposit: IDeposit = {
-            input_from_party: buyer,
-            that_deposits: bintAmount,
-            of_token: lovelace,
-            into_account: receiver,
-        };
-
-        // formulate deposit, create ApplyInputsRequest
-        const depositInputs: Input[] = [deposit];
-        const depositRequest: ApplyInputsRequest = {
-            inputs: depositInputs
-        };
-
-        // apply deposit to our contract ID
-        const txId = await runtimeLifecycle.contracts.applyInputs(ctcID, depositRequest);
-        const depositConfirm = await browserWallet.waitConfirmation(txId);
-        console.log(`Txn confirmed: ${depositConfirm}`);
-
-        setChoiceFlag(false);// enable buttons at UI
-        console.log(`The contract is waiting for a Choice from the receiver`);
-
-        // wait for choice from UI execute handleChoice functions
-    };
-
-    // donate choice handler for Smart Gift Card
-    function handleDonate(){
-        setChoiceFlag(true);// turn off buttons at UI
-
-        console.log(`You chose to donate your Gift Card to charity, we are preparing that txn...`);
-
-        const choiceName: ChoiceName = "purchase";
-        const receiver: Party = {address: toAddress};
-
-        const purchaseChoice: ChoiceId = {
-            choice_name: choiceName,
-            choice_owner: receiver,
-        };
-
-        const donateChoice: IChoice = {
-            for_choice_id: purchaseChoice,
-            input_that_chooses_num: 0n,
-        }
-
-        handleChoiceSubmit(donateChoice);
-    };
-
-    // purchaseChoice handler for Smart Gift Card
-    function handlePurchase(){
-        setChoiceFlag(true);
-        const choiceName: ChoiceName = "purchase";
-        const receiver: Party = {address: toAddress};
-
-        const choices: ChoiceId = {
-            choice_name: choiceName,
-            choice_owner: receiver,
-        };
-
-        const purchaseChoice: IChoice = {
-            for_choice_id: choices,
-            input_that_chooses_num: 1n,
-        }
-        handleChoiceSubmit(purchaseChoice);
-    };
-
-    // common function for applying inputs to SmartGiftCard
-    async function handleChoiceSubmit(numChoice: IChoice) {
-
-        // formulate choice inputs
-        const choiceInputs: Input[] = [numChoice];
-        const choiceRequest: ApplyInputsRequest = {
-            inputs: choiceInputs,
-        };
-
-        // make a runtimeLifecycle object so that receiver can apply inputs to SC
-        const recRuntimeLifecycle = await mkRuntimeLifecycle({
-            walletName: 'lace',// TODO -- remove hardcoded
-            runtimeURL: RUNTIME_URL,
-        });
-        console.log(`Connected receiver address to runtime instance.\nApplying input choice...`);
-
-        const choiceTxn = await recRuntimeLifecycle.contracts.applyInputs(ctcGift as ContractId, choiceRequest);
-        console.log(`Choice TXN Receipt: ${choiceTxn}`);
-    };
+    };   
 
     // we only want this to run once
     useEffect(() => {
@@ -275,11 +121,6 @@ const App: React.FC = () => {
     const startSimpleDemo = () => {
         setDemoFlag(true);// do I need this if I'm going to change pages?
         setView(views.SIMPLE_DEMO);
-    };
-
-    const startSmartGift = () => {
-        setGiftFlag(true);
-        setView(views.SMART_GIFT);
     };
 
     return(
@@ -302,17 +143,8 @@ const App: React.FC = () => {
             {view === views.CONTRACTS && <Contracts 
                 startSimpleDemo={startSimpleDemo}
                 demoFlag={demoFlag}
-                giftFlag={giftFlag}
-                startSmartGift={startSmartGift}
             />}
             {view === views.SIMPLE_DEMO && <SimpleDemo handleSimpleDemo={handleSimpleDemo}/>}
-            {view === views.SMART_GIFT && <SmartGift 
-                handleSmartGift={handleSmartGift}
-                submitFlag={submitFlag}
-                choiceFlag={choiceFlag}
-                handleDonate={handleDonate}
-                handlePurchase={handlePurchase}
-            />}
         </div>
     );
 };

@@ -19,6 +19,6 @@ function mkSimpleDemo(amtLovelace: number, alice: Party, bob: Party){
     timeout: datetoTimeout(new Date("2024-12-31 11:59:59")),
   };
   return simpleDemoContract;
-}
+};
 
 export default mkSimpleDemo;
