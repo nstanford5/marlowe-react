@@ -1,3 +1,16 @@
+/**
+ * 0.3.0-beta-rc2 Notes
+ * 
+ * What did I need to do?
+ * 
+ * Simple Demo:
+ * update packages with explicit version
+ * remove unAddressBech32
+ * add minUTxODeposit to createContract = 3_000_000
+ * 
+ * 
+ */
+
 // React && helper imports
 import './App.css';
 import React from 'react';
@@ -14,7 +27,6 @@ import { mkRuntimeLifecycle } from '@marlowe.io/runtime-lifecycle/browser';
 import { SupportedWalletName } from '@marlowe.io/wallet/browser';
 import { ApplyInputsRequest } from '@marlowe.io/runtime-lifecycle/api';
 import { getInstalledWalletExtensions, mkBrowserWallet } from '@marlowe.io/wallet';
-import { unAddressBech32 } from '@marlowe.io/runtime-core';
 import { 
     Input, 
     IDeposit, 
@@ -59,11 +71,8 @@ const App: React.FC = () => {
         const amtLovelace = parseADA(amt);
 
         const supportedWallet = walletChoice as SupportedWalletName;
-        const bWallet = await mkBrowserWallet(supportedWallet);
-
-        const aliceAddr32 = await bWallet.getChangeAddress();
-        // this won't be needed soon
-        const aliceAddr = unAddressBech32(aliceAddr32);
+        const browserWallet = await mkBrowserWallet(supportedWallet);
+        const aliceAddr = await browserWallet.getChangeAddress();
 
         const alice: Party = {address: aliceAddr};
         const bob: Party = {address: bobAddrRef};
@@ -73,17 +82,21 @@ const App: React.FC = () => {
             walletName: supportedWallet,
             runtimeURL: RUNTIME_URL
         });
+        console.log(`Connected to runtime instance!`);
 
         // build the Smart Contract
         const myContract = mkSimpleDemo(amtLovelace, alice, bob);
 
         // deploy the Smart Contract
+        console.log(`Submitting contract to the blockchain...`);
         const [contractId, txnId] = await runtimeLifecycle.contracts.createContract({
             contract: myContract,
+            minimumLovelaceUTxODeposit: 3000000, // this throws an internal server error if less than 3mil
         });
+        console.log(`Waiting for confirmation of the txn...`);
 
         // wait for confirmation of that txn
-        const contractConfirm = await bWallet.waitConfirmation(txnId);
+        const contractConfirm = await browserWallet.waitConfirmation(txnId);
         console.log(`Contract Creation is: ${contractConfirm}`);
 
         // build the deposit
@@ -103,7 +116,7 @@ const App: React.FC = () => {
         const txId = await runtimeLifecycle.contracts.applyInputs(contractId, depositRequest);
 
         // wait for deposit confirmation and check status
-        const depositConfirm = await bWallet.waitConfirmation(txId);
+        const depositConfirm = await browserWallet.waitConfirmation(txId);
         console.log(`Txn confirmed: ${depositConfirm}\nHere is your receipt: ${txId}`);
     };   
 
