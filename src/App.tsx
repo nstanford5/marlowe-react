@@ -1,16 +1,3 @@
-/**
- * 0.3.0-beta-rc2 Notes
- * 
- * What did I need to do?
- * 
- * Simple Demo:
- * update packages with explicit version
- * remove unAddressBech32
- * add minUTxODeposit to createContract = 3_000_000
- * 
- * 
- */
-
 // React && helper imports
 import './App.css';
 import React from 'react';
@@ -57,15 +44,6 @@ const App: React.FC = () => {
         return lovelace; 
     };
     
-    /**
-     * Build this for demo
-     * 
-     * 1. connect to runtime
-     * 2. create contract txn
-     * 3. wait for txn confirmation
-     * 4. building inputs
-     * 5. Submitting inputs
-     */
     async function handleSimpleDemo(amt: number, bobAddrRef: string){
         
         const amtLovelace = parseADA(amt);
@@ -91,7 +69,7 @@ const App: React.FC = () => {
         console.log(`Submitting contract to the blockchain...`);
         const [contractId, txnId] = await runtimeLifecycle.contracts.createContract({
             contract: myContract,
-            minimumLovelaceUTxODeposit: 3000000, // this throws an internal server error if less than 3mil
+            minimumLovelaceUTxODeposit: 3_000_000,
         });
         console.log(`Waiting for confirmation of the txn...`);
 

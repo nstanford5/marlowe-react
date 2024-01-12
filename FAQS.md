@@ -26,6 +26,9 @@ The address that is making the request is not allowed to perform that action. Yo
 ### 404 not found
 The contract cannot be located in the runtime instance -- likely you need to wait for the creation txn to finish confirming.
 
+### 500 Internal Server Error
+Check your `minimumLovelaceUTxODeposit` in `createContract` amount is high enough. 3,000,000 is a good number to set for this.
+
 ### Nami wallet not recognized by getInstalledWalletExtensions()
 See this [GitHub Issue](https://github.com/input-output-hk/marlowe-ts-sdk/issues/141)
 
