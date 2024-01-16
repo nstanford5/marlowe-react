@@ -69,7 +69,7 @@ const App: React.FC = () => {
         console.log(`Submitting contract to the blockchain...`);
         const [contractId, txnId] = await runtimeLifecycle.contracts.createContract({
             contract: myContract,
-            minimumLovelaceUTxODeposit: 3_000_000,
+            //minimumLovelaceUTxODeposit: 3_000_000,
         });
         console.log(`Waiting for confirmation of the txn...`);
 
